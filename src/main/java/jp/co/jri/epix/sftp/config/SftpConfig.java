@@ -1,31 +1,31 @@
 package jp.co.jri.epix.sftp.config;
 
 import com.jcraft.jsch.ChannelSftp;
+import jp.co.jri.epix.sftp.service.SftpService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
-import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
-import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
-import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
-import java.io.File;
-
 @Configuration
 @EnableIntegration
 @IntegrationComponentScan
 public class SftpConfig {
+    private static final Logger logger = LogManager.getLogger(SftpService.class);
 
     @Value("${sftp.host}")
     private String host;
@@ -36,8 +36,17 @@ public class SftpConfig {
     @Value("${sftp.user}")
     private String user;
 
+    // for user id and password authentication
     @Value("${sftp.password}")
     private String password;
+
+    // <-- for private key authentication
+    @Value("${sftp.privateKeyPath}")
+    private String privateKeyPath;
+
+    @Value("${sftp.privateKeyPassphrase:}")
+    private String privateKeyPassphrase;
+    // -->
 
     @Value("${sftp.remote-directory}")
     private String remoteDirectory;
@@ -93,15 +102,50 @@ public class SftpConfig {
         this.localDirectory = localDirectory;
     }
 
+    public String getPrivateKeyPath() {
+        return privateKeyPath;
+    }
+
+    public void setPrivateKeyPath(String privateKeyPath) {
+        this.privateKeyPath = privateKeyPath;
+    }
+
+    public String getPrivateKeyPassphrase() {
+        return privateKeyPassphrase;
+    }
+
+    public void setPrivateKeyPassphrase(String privateKeyPassphrase) {
+        this.privateKeyPassphrase = privateKeyPassphrase;
+    }
+
     @Bean
     public CachingSessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {
         DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
         factory.setHost(host);
         factory.setPort(port);
         factory.setUser(user);
+
+        // for user id and password authentication
         factory.setPassword(password);
-        factory.setAllowUnknownKeys(true);
+
+        // for private key authentication
+//        factory.setPrivateKey(new FileSystemResource(privateKeyPath));
+//        logger.debug("privateKeyPath=" + privateKeyPath);
+//        if (privateKeyPassphrase != null && !privateKeyPassphrase.isEmpty()) {
+//            factory.setPrivateKeyPassphrase(privateKeyPassphrase);
+//            logger.debug("privateKeyPassphrase=" + privateKeyPassphrase);
+//        }
+
+        factory.setAllowUnknownKeys(true); // optionally disable strict host key checking
         return new CachingSessionFactory<>(factory);
+    }
+
+    @Bean
+    public RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate() {
+        RemoteFileTemplate<ChannelSftp.LsEntry> template = new RemoteFileTemplate<>(sftpSessionFactory());
+        template.setRemoteDirectoryExpression(new LiteralExpression(remoteDirectory));
+        template.setAutoCreateDirectory(true);
+        return template;
     }
 
     @Bean
