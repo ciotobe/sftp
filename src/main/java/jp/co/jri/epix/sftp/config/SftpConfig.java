@@ -45,6 +45,54 @@ public class SftpConfig {
     @Value("${sftp.local-directory}")
     private String localDirectory;
 
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getRemoteDirectory() {
+        return remoteDirectory;
+    }
+
+    public void setRemoteDirectory(String remoteDirectory) {
+        this.remoteDirectory = remoteDirectory;
+    }
+
+    public String getLocalDirectory() {
+        return localDirectory;
+    }
+
+    public void setLocalDirectory(String localDirectory) {
+        this.localDirectory = localDirectory;
+    }
+
     @Bean
     public CachingSessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {
         DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
@@ -75,6 +123,7 @@ public class SftpConfig {
                 .get();
     }
 
+    /*
     @Bean
     public IntegrationFlow sftpDownloadFlow() {
         SftpInboundFileSynchronizer synchronizer = new SftpInboundFileSynchronizer(sftpSessionFactory());
@@ -90,9 +139,10 @@ public class SftpConfig {
 
         return IntegrationFlows.from(source, e -> e.poller(Pollers.fixedDelay(5000)))
                 .handle(message -> {
-                    System.out.println("⬇️ Downloaded: " + message.getPayload());
+                    System.out.println("Downloaded: " + message.getPayload());
                 })
                 .get();
     }
+    */
 }
 

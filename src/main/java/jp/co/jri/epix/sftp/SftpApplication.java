@@ -1,6 +1,9 @@
 package jp.co.jri.epix.sftp;
 
+import jp.co.jri.epix.sftp.config.SftpConfig;
 import jp.co.jri.epix.sftp.service.SftpService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,11 +12,14 @@ import java.io.File;
 
 @SpringBootApplication
 public class SftpApplication implements CommandLineRunner {
+	private static final Logger logger = LogManager.getLogger(SftpApplication.class);
 
 	private final SftpService sftpService;
+	private final SftpConfig sftpConfig;
 
-	public SftpApplication(SftpService sftpService) {
+	public SftpApplication(SftpService sftpService, SftpConfig sftpConfig) {
 		this.sftpService = sftpService;
+		this.sftpConfig = sftpConfig;
 	}
 
 	public static void main(String[] args) {
@@ -22,12 +28,48 @@ public class SftpApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) {
-		File file = new File(sftpService.getUploadFilePath());
-		if (file.exists()) {
-			sftpService.uploadFile(file);
-			System.out.println("✅ Upload triggered for: " + file.getAbsolutePath());
-		} else {
-			System.out.println("❌ File not found: " + file.getAbsolutePath());
+		String uploadFilename = null;
+		String uploadDir = null;
+
+		for (String arg : args) {
+			if (arg.startsWith("--upload.file=")) {
+				uploadFilename = arg.substring("--upload.file=".length());
+			}
+			if (arg.startsWith("--upload.dir=")) {
+				uploadDir = arg.substring("--upload.dir=".length());
+			}
+		}
+
+		if (uploadFilename != null) {
+			File file = new File(sftpConfig.getLocalDirectory() + "\\\\" + uploadFilename);
+			if (!file.exists()) {
+				logger.error("File not found: {}", file.getAbsolutePath());
+			} else {
+				sftpService.uploadFile(file);
+				logger.info("Uploaded file: {}", file.getAbsolutePath());
+			}
+		}
+
+		if (uploadDir != null) {
+			File dir = new File(uploadDir);
+			if (!dir.isDirectory()) {
+				logger.error("Not a directory: {}", dir.getAbsolutePath());
+			} else {
+				File[] files = dir.listFiles(File::isFile);
+
+				if (files == null || files.length == 0) {
+					logger.warn("No files found in directory: {}", dir.getAbsolutePath());
+				} else {
+					for (File f : files) {
+						sftpService.uploadFile(f);
+						logger.info("Uploaded file: {}", f.getAbsolutePath());
+					}
+				}
+			}
+		}
+
+		if (uploadFilename == null && uploadDir == null) {
+			logger.warn("You must provide --upload.file or --upload.dir");
 		}
 	}
 }
