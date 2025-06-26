@@ -1,7 +1,6 @@
 package jp.co.jri.epix.sftp.config;
 
 import com.jcraft.jsch.ChannelSftp;
-import jp.co.jri.epix.sftp.repo.ApiAccessRepository;
 import jp.co.jri.epix.sftp.service.SftpService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,7 +25,7 @@ import org.springframework.messaging.MessageHandler;
 @IntegrationComponentScan
 public class SftpConfig {
     private static final Logger logger = LogManager.getLogger(SftpService.class);
-    private final ApiAccessRepository apiAccessRepository;
+//    private final ApiAccessRepository apiAccessRepository;
     @Value("${sftp.host}")
     private String host;
     @Value("${sftp.port}")
@@ -47,9 +46,9 @@ public class SftpConfig {
     @Value("${sftp.local-directory}")
     private String localDirectory;
 
-    public SftpConfig(ApiAccessRepository apiAccessRepository) {
-        this.apiAccessRepository = apiAccessRepository;
-    }
+//    public SftpConfig(ApiAccessRepository apiAccessRepository) {
+//        this.apiAccessRepository = apiAccessRepository;
+//    }
 
     public String getHost() {
         return host;
