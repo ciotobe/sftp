@@ -8,10 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 @SpringBootApplication
 public class SftpApplication implements CommandLineRunner {
@@ -75,8 +72,8 @@ public class SftpApplication implements CommandLineRunner {
             logger.warn("You must provide --upload.file or --upload.dir");
         }
 
-        String content = "Upload from memory!";
-        InputStream stream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-        sftpService.uploadInputStream(stream, sftpConfig.getRemoteDirectory(),"upload-from-stream.txt");
+//        String content = "Upload from memory!";
+//        InputStream stream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+//        sftpService.uploadInputStream(stream, sftpConfig.getRemoteDirectory(),"upload-from-stream.txt");
     }
 }

@@ -7,7 +7,7 @@
 
         <!-- Rolling File Output -->
         <RollingFile name="RollingFile" fileName="D:\\tmp\\logs\\sftp.log"
-                     filePattern="log/sftp-%d{yyyy-MM-dd}-%i.log.gz">
+                     filePattern="D:\\tmp\\logs\\sftp-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout>
                 <Pattern>[%d{yyyy-MM-dd HH:mm:ss}] [%-5level] %c - %msg%n</Pattern>
             </PatternLayout>
@@ -31,7 +31,7 @@
             <AppenderRef ref="RollingFile"/>
         </Logger>
 
-        <Logger name="org.springframework.integration.file.remote" level="debug" />
-        <Logger name="com.jcraft.jsch" level="debug" />
+        <Logger name="org.springframework.integration.file.remote" level="debug"/>
+        <Logger name="com.jcraft.jsch" level="debug"/>
     </Loggers>
 </Configuration>

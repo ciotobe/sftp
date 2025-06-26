@@ -1,13 +1,13 @@
 package jp.co.jri.epix.sftp.config;
 
 import com.jcraft.jsch.ChannelSftp;
+import jp.co.jri.epix.sftp.repo.ApiAccessRepository;
 import jp.co.jri.epix.sftp.service.SftpService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.channel.DirectChannel;
@@ -26,33 +26,30 @@ import org.springframework.messaging.MessageHandler;
 @IntegrationComponentScan
 public class SftpConfig {
     private static final Logger logger = LogManager.getLogger(SftpService.class);
-
+    private final ApiAccessRepository apiAccessRepository;
     @Value("${sftp.host}")
     private String host;
-
     @Value("${sftp.port}")
     private int port;
-
     @Value("${sftp.user}")
     private String user;
-
     // for user id and password authentication
     @Value("${sftp.password}")
     private String password;
-
     // <-- for private key authentication
     @Value("${sftp.privateKeyPath}")
     private String privateKeyPath;
-
+    // -->
     @Value("${sftp.privateKeyPassphrase:}")
     private String privateKeyPassphrase;
-    // -->
-
     @Value("${sftp.remote-directory}")
     private String remoteDirectory;
-
     @Value("${sftp.local-directory}")
     private String localDirectory;
+
+    public SftpConfig(ApiAccessRepository apiAccessRepository) {
+        this.apiAccessRepository = apiAccessRepository;
+    }
 
     public String getHost() {
         return host;
@@ -120,6 +117,13 @@ public class SftpConfig {
 
     @Bean
     public CachingSessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {
+//        ApiAccess apiAccess = apiAccessRepository.findApiAccessByBranch("SNG").orElseThrow(() -> new IllegalStateException("No SFTP credentials in database"));
+//        logger.debug("id=" + apiAccess.getId());
+//        logger.debug("branch=" + apiAccess.getBranch());
+//        logger.debug("key=" + apiAccess.getKey());
+//        logger.debug("filename=" + apiAccess.getFilename());
+//        logger.debug("content=" + apiAccess.getContent());
+
         DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
         factory.setHost(host);
         factory.setPort(port);

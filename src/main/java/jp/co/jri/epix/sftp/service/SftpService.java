@@ -35,7 +35,7 @@ public class SftpService {
         }
     }
 
-    public void uploadInputStream(InputStream inputStream, String remoteDirectory,String remoteFilename) {
+    public void uploadInputStream(InputStream inputStream, String remoteDirectory, String remoteFilename) {
         try {
             Message<InputStream> message = MessageBuilder
                     .withPayload(inputStream)
