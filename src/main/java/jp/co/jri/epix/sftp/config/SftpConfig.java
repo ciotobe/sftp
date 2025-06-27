@@ -1,6 +1,8 @@
 package jp.co.jri.epix.sftp.config;
 
 import com.jcraft.jsch.ChannelSftp;
+import jp.co.jri.epix.sftp.entity.ApiAccess;
+import jp.co.jri.epix.sftp.repo.ApiAccessRepository;
 import jp.co.jri.epix.sftp.service.SftpService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,6 +19,7 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
@@ -25,7 +28,8 @@ import org.springframework.messaging.MessageHandler;
 @IntegrationComponentScan
 public class SftpConfig {
     private static final Logger logger = LogManager.getLogger(SftpService.class);
-//    private final ApiAccessRepository apiAccessRepository;
+    private final ApiAccessRepository apiAccessRepository;
+
     @Value("${sftp.host}")
     private String host;
     @Value("${sftp.port}")
@@ -46,9 +50,9 @@ public class SftpConfig {
     @Value("${sftp.local-directory}")
     private String localDirectory;
 
-//    public SftpConfig(ApiAccessRepository apiAccessRepository) {
-//        this.apiAccessRepository = apiAccessRepository;
-//    }
+    public SftpConfig(ApiAccessRepository apiAccessRepository) {
+        this.apiAccessRepository = apiAccessRepository;
+    }
 
     public String getHost() {
         return host;
@@ -116,12 +120,12 @@ public class SftpConfig {
 
     @Bean
     public CachingSessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {
-//        ApiAccess apiAccess = apiAccessRepository.findApiAccessByBranch("SNG").orElseThrow(() -> new IllegalStateException("No SFTP credentials in database"));
-//        logger.debug("id=" + apiAccess.getId());
-//        logger.debug("branch=" + apiAccess.getBranch());
-//        logger.debug("key=" + apiAccess.getKey());
-//        logger.debug("filename=" + apiAccess.getFilename());
-//        logger.debug("content=" + apiAccess.getContent());
+        ApiAccess apiAccess = apiAccessRepository.findApiAccessByBranch("SNG").orElseThrow(() -> new IllegalStateException("No SFTP credentials in database"));
+        logger.debug("id=" + apiAccess.getId());
+        logger.debug("branch=" + apiAccess.getBranch());
+        logger.debug("key=" + apiAccess.getKey());
+        logger.debug("filename=" + apiAccess.getFilename());
+        logger.debug("content=" + apiAccess.getContent());
 
         DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
         factory.setHost(host);
