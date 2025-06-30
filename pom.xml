@@ -96,11 +96,11 @@
     <build>
         <plugins>
             <plugin>
-                <!--<groupId>org.springframework.boot</groupId>-->
-                <!--<artifactId>spring-boot-maven-plugin</artifactId>-->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.6.0</version>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-dependency-plugin</artifactId>-->
+<!--                <version>3.6.0</version>-->
                 <!--
                 <executions>
                     <execution>
@@ -110,6 +110,7 @@
                     </execution>
                 </executions>
                 -->
+                <!--
                 <executions>
                     <execution>
                         <id>copy-dependencies</id>
@@ -125,6 +126,7 @@
                         </configuration>
                     </execution>
                 </executions>
+                -->
             </plugin>
         </plugins>
     </build>
