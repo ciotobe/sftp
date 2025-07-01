@@ -1,16 +1,9 @@
-package jp.co.jri.epix.sftp.entity;
+package jp.co.jri.epix.sftp.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 import java.sql.Date;
 
-@Entity
-@Table(name = "epix_m_api_access")
 public class ApiAccess {
-    @Id
     private String application;
-
     private String component;
     private String apiKey;
     private Date expiryDate;

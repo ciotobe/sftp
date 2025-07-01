@@ -1,7 +1,7 @@
 package jp.co.jri.epix.sftp.service;
 
-import jp.co.jri.epix.sftp.entity.ApiAccess;
-import jp.co.jri.epix.sftp.repo.ApiAccessRepository;
+import jp.co.jri.epix.sftp.mapper.ApiAccessMapper;
+import jp.co.jri.epix.sftp.model.ApiAccess;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.integration.file.FileHeaders;
@@ -18,13 +18,13 @@ import java.util.List;
 public class SftpService {
     private static final Logger logger = LogManager.getLogger(SftpService.class);
     private final MessageChannel toSftpChannel;
-    private final ApiAccessRepository apiAccessRepository;
+    private final ApiAccessMapper apiAccessMapper;
 
     public SftpService(
             MessageChannel toSftpChannel,
-            ApiAccessRepository apiAccessRepository) {
+            ApiAccessMapper apiAccessMapper) {
         this.toSftpChannel = toSftpChannel;
-        this.apiAccessRepository = apiAccessRepository;
+        this.apiAccessMapper = apiAccessMapper;
     }
 
     public void uploadFile(File file) {
@@ -57,7 +57,7 @@ public class SftpService {
     }
 
     public List<ApiAccess> retrieveAllData(String application) {
-        List<ApiAccess> apiAccessList = apiAccessRepository.findAllByApplication("Trade");
+        List<ApiAccess> apiAccessList = apiAccessMapper.findAllByApplication("Trade");
 
         if (apiAccessList.size() > 0) {
             return apiAccessList;

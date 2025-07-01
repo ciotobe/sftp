@@ -1,8 +1,8 @@
 package jp.co.jri.epix.sftp.config;
 
 import com.jcraft.jsch.ChannelSftp;
-import jp.co.jri.epix.sftp.entity.ApiAccess;
-import jp.co.jri.epix.sftp.repo.ApiAccessRepository;
+import jp.co.jri.epix.sftp.mapper.ApiAccessMapper;
+import jp.co.jri.epix.sftp.model.ApiAccess;
 import jp.co.jri.epix.sftp.service.SftpService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,7 +28,7 @@ import org.springframework.messaging.MessageHandler;
 @IntegrationComponentScan
 public class SftpConfig {
     private static final Logger logger = LogManager.getLogger(SftpService.class);
-    private final ApiAccessRepository apiAccessRepository;
+    private final ApiAccessMapper apiAccessMapper;
 
     @Value("${sftp.host}")
     private String host;
@@ -50,8 +50,8 @@ public class SftpConfig {
     @Value("${sftp.local-directory}")
     private String localDirectory;
 
-    public SftpConfig(ApiAccessRepository apiAccessRepository) {
-        this.apiAccessRepository = apiAccessRepository;
+    public SftpConfig(ApiAccessMapper apiAccessMapper) {
+        this.apiAccessMapper = apiAccessMapper;
     }
 
     public String getHost() {
@@ -120,7 +120,7 @@ public class SftpConfig {
 
     @Bean
     public CachingSessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {
-        ApiAccess apiAccess = apiAccessRepository.findApiAccessByApplication("Trade").orElseThrow(() -> new IllegalStateException("No SFTP credentials in database"));
+        ApiAccess apiAccess = apiAccessMapper.findApiAccessByApplication("Trade");
         logger.debug("application=" + apiAccess.getApplication());
         logger.debug("component=" + apiAccess.getComponent());
         logger.debug("apiKey=" + apiAccess.getApiKey());
