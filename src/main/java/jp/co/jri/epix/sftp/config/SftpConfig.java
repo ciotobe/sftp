@@ -15,11 +15,11 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
@@ -120,12 +120,12 @@ public class SftpConfig {
 
     @Bean
     public CachingSessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {
-        ApiAccess apiAccess = apiAccessRepository.findApiAccessByBranch("SNG").orElseThrow(() -> new IllegalStateException("No SFTP credentials in database"));
-        logger.debug("id=" + apiAccess.getId());
-        logger.debug("branch=" + apiAccess.getBranch());
-        logger.debug("key=" + apiAccess.getKey());
-        logger.debug("filename=" + apiAccess.getFilename());
-        logger.debug("content=" + apiAccess.getContent());
+        ApiAccess apiAccess = apiAccessRepository.findApiAccessByApplication("Trade").orElseThrow(() -> new IllegalStateException("No SFTP credentials in database"));
+        logger.debug("application=" + apiAccess.getApplication());
+        logger.debug("component=" + apiAccess.getComponent());
+        logger.debug("apiKey=" + apiAccess.getApiKey());
+        logger.debug("expiryDate=" + apiAccess.getExpiryDate());
+        logger.debug("neverExpired=" + apiAccess.getNeverExpired());
 
         DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
         factory.setHost(host);
@@ -159,6 +159,8 @@ public class SftpConfig {
     public MessageHandler sftpMessageHandler() {
         SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
         handler.setRemoteDirectoryExpression(new LiteralExpression(remoteDirectory));
+        handler.setAutoCreateDirectory(true);
+        handler.setFileNameGenerator(message -> (String) message.getHeaders().get(FileHeaders.REMOTE_FILE));
         return handler;
     }
 

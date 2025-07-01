@@ -78,7 +78,7 @@ public class SftpApplication implements CommandLineRunner {
 //        String content = "Upload from memory!";
 //        InputStream stream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
 //        sftpService.uploadInputStream(stream, sftpConfig.getRemoteDirectory(),"upload-from-stream.txt");
-        InputStream stream = new ByteArrayInputStream(sftpService.retrieveAllData("SNG").get(0).getContent().getBytes(StandardCharsets.UTF_8));
-        sftpService.uploadInputStream(stream, sftpConfig.getRemoteDirectory(),"from database.txt");
+        InputStream stream = new ByteArrayInputStream(sftpService.retrieveAllData("Trade").get(0).getApiKey().getBytes(StandardCharsets.UTF_8));
+        sftpService.uploadInputStream(stream, sftpConfig.getRemoteDirectory(), "fromdatabase.txt");
     }
 }

@@ -1,52 +1,58 @@
 package jp.co.jri.epix.sftp.entity;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import java.sql.Date;
 
 @Entity
 @Table(name = "epix_m_api_access")
 public class ApiAccess {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String application;
 
-    private String branch;
-    private String key;
-    private String filename;
-    private String content;
+    private String component;
+    private String apiKey;
+    private Date expiryDate;
+    private Character neverExpired;
 
-    public Long getId() {
-        return id;
+    public String getApplication() {
+        return application;
     }
 
-    public String getBranch() {
-        return branch;
+    public void setApplication(String application) {
+        this.application = application;
     }
 
-    public void setBranch(String branch) {
-        this.branch = branch;
+    public String getComponent() {
+        return component;
     }
 
-    public String getKey() {
-        return key;
+    public void setComponent(String component) {
+        this.component = component;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public String getApiKey() {
+        return apiKey;
     }
 
-    public String getFilename() {
-        return filename;
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
     }
 
-    public void setFilename(String filename) {
-        this.filename = filename;
+    public Date getExpiryDate() {
+        return expiryDate;
     }
 
-    public String getContent() {
-        return content;
+    public void setExpiryDate(Date expiryDate) {
+        this.expiryDate = expiryDate;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public Character getNeverExpired() {
+        return neverExpired;
+    }
+
+    public void setNeverExpired(Character neverExpired) {
+        this.neverExpired = neverExpired;
     }
 }
