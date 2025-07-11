@@ -12,16 +12,26 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
+import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.interceptor.MethodInvocationRecoverer;
+import org.springframework.retry.interceptor.RetryInterceptorBuilder;
+import org.springframework.retry.interceptor.RetryOperationsInterceptor;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 @Configuration
 @EnableIntegration
@@ -49,6 +59,12 @@ public class SftpConfig {
     private String remoteDirectory;
     @Value("${sftp.local-directory}")
     private String localDirectory;
+
+    @Value("${sftp.retry.max-attempts}")
+    private int maxAttempts;
+
+    @Value("${sftp.retry.delay}")
+    private long retryDelay;
 
     public SftpConfig(ApiAccessMapper apiAccessMapper) {
         this.apiAccessMapper = apiAccessMapper;
@@ -102,6 +118,22 @@ public class SftpConfig {
         this.localDirectory = localDirectory;
     }
 
+    public int getMaxAttempts() {
+        return maxAttempts;
+    }
+
+    public void setMaxAttempts(int maxAttempts) {
+        this.maxAttempts = maxAttempts;
+    }
+
+    public long getRetryDelay() {
+        return retryDelay;
+    }
+
+    public void setRetryDelay(long retryDelay) {
+        this.retryDelay = retryDelay;
+    }
+
     public String getPrivateKeyPath() {
         return privateKeyPath;
     }
@@ -120,12 +152,12 @@ public class SftpConfig {
 
     @Bean
     public CachingSessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {
-        ApiAccess apiAccess = apiAccessMapper.findApiAccessByApplication("Trade");
-        logger.debug("application=" + apiAccess.getApplication());
-        logger.debug("component=" + apiAccess.getComponent());
-        logger.debug("apiKey=" + apiAccess.getApiKey());
-        logger.debug("expiryDate=" + apiAccess.getExpiryDate());
-        logger.debug("neverExpired=" + apiAccess.getNeverExpired());
+//        ApiAccess apiAccess = apiAccessMapper.findApiAccessByApplication("Trade");
+//        logger.debug("application=" + apiAccess.getApplication());
+//        logger.debug("component=" + apiAccess.getComponent());
+//        logger.debug("apiKey=" + apiAccess.getApiKey());
+//        logger.debug("expiryDate=" + apiAccess.getExpiryDate());
+//        logger.debug("neverExpired=" + apiAccess.getNeverExpired());
 
         DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
         factory.setHost(host);
@@ -172,30 +204,36 @@ public class SftpConfig {
     @Bean
     public IntegrationFlow sftpUploadFlow() {
         return IntegrationFlows.from(toSftpChannel())
-                .handle(sftpMessageHandler())
+                .split()
+                .handle(sftpMessageHandler(), e -> e.advice(sftpRetryAdvice()))
                 .get();
     }
 
-    /*
     @Bean
-    public IntegrationFlow sftpDownloadFlow() {
-        SftpInboundFileSynchronizer synchronizer = new SftpInboundFileSynchronizer(sftpSessionFactory());
-        synchronizer.setDeleteRemoteFiles(false);
-        synchronizer.setRemoteDirectory(remoteDirectory);
-        synchronizer.setFilter(new SftpSimplePatternFileListFilter("*.txt"));
+    public RequestHandlerRetryAdvice sftpRetryAdvice() {
+        RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
 
-        SftpInboundFileSynchronizingMessageSource source =
-                new SftpInboundFileSynchronizingMessageSource(synchronizer);
-        source.setLocalDirectory(new File(localDirectory));
-        source.setAutoCreateLocalDirectory(true);
-        source.setLocalFilter(new org.springframework.integration.file.filters.AcceptOnceFileListFilter<>());
+        RetryTemplate retryTemplate = new RetryTemplate();
 
-        return IntegrationFlows.from(source, e -> e.poller(Pollers.fixedDelay(5000)))
-                .handle(message -> {
-                    System.out.println("Downloaded: " + message.getPayload());
-                })
-                .get();
+        SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+        retryPolicy.setMaxAttempts(maxAttempts);
+
+        FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
+        backOffPolicy.setBackOffPeriod(retryDelay); // in ms
+
+        retryTemplate.setRetryPolicy(retryPolicy);
+        retryTemplate.setBackOffPolicy(backOffPolicy);
+
+        advice.setRetryTemplate(retryTemplate);
+
+        // Optional: log or handle final failure
+        advice.setRecoveryCallback(context -> {
+            Message<?> failedMessage = (Message<?>) context.getAttribute("message");
+            System.err.println("SFTP upload permanently failed: " + failedMessage);
+            return null;
+        });
+
+        return advice;
     }
-    */
 }
 

@@ -2,6 +2,7 @@ package jp.co.jri.epix.sftp.service;
 
 import jp.co.jri.epix.sftp.mapper.ApiAccessMapper;
 import jp.co.jri.epix.sftp.model.ApiAccess;
+import jp.co.jri.epix.sftp.model.StreamWithFilename;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.integration.file.FileHeaders;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SftpService {
@@ -53,6 +55,24 @@ public class SftpService {
             logger.info("Uploaded InputStream to remote file: {} {}", remoteDirectory, remoteFilename);
         } catch (Exception e) {
             logger.error("Failed to upload InputStream to {} {}: {}", remoteDirectory, remoteFilename, e.getMessage(), e);
+        }
+    }
+
+    public void uploadInputStream(List<StreamWithFilename> items, String remoteDirectory) {
+        try {
+            List<Message<InputStream>> messages = items.stream()
+                    .map(item -> MessageBuilder.withPayload(item.getStream())
+                            .setHeader(FileHeaders.REMOTE_FILE, item.getFilename())
+                            .setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDirectory)
+                            .build())
+                    .collect(Collectors.toList());
+
+            Message<List<Message<InputStream>>> finalMessage = MessageBuilder.withPayload(messages).build();
+            toSftpChannel.send(finalMessage);
+
+            logger.info("Uploaded InputStream to remote file: {} {}", remoteDirectory);
+        } catch (Exception e) {
+            logger.error("Failed to upload InputStream to {} {}: {}", remoteDirectory, e.getMessage(), e);
         }
     }
 

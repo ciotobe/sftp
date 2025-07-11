@@ -8,7 +8,7 @@ import java.util.List;
 
 @Mapper
 public interface ApiAccessMapper{
-    ApiAccess findApiAccessByApplication(@Param("application") String application);
+    //ApiAccess findApiAccessByApplication(@Param("application") String application);
 
     List<ApiAccess> findAllByApplication(@Param("application") String application);
 }
